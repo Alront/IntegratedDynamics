@@ -27,6 +27,7 @@ import org.cyclops.integrateddynamics.api.evaluate.variable.IVariable;
 import org.cyclops.integrateddynamics.api.item.IOperatorVariableFacade;
 import org.cyclops.integrateddynamics.api.item.IVariableFacadeHandlerRegistry;
 import org.cyclops.integrateddynamics.core.evaluate.expression.LazyExpression;
+import org.cyclops.integrateddynamics.core.evaluate.variable.ValueHelpers;
 import org.cyclops.integrateddynamics.core.item.OperatorVariableFacade;
 
 import javax.annotation.Nullable;
@@ -120,6 +121,7 @@ public class OperatorRegistry implements IOperatorRegistry {
 
     @Override
     public IOperator deserialize(String value) throws EvaluationException {
+    	value = ValueHelpers.uncompressSlashes(value); // TODO: remove this hack
         String[] split = value.split(":");
         if (split.length > 1) {
             String serializerName = split[0];

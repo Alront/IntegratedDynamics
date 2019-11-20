@@ -188,6 +188,7 @@ public class CurriedOperator implements IOperator {
         @Override
         public CurriedOperator deserialize(String valueOperator) throws EvaluationException {
             NBTTagCompound tag;
+        	valueOperator = ValueHelpers.uncompressSlashes(valueOperator);
             try {
                 tag = JsonToNBT.getTagFromJson(valueOperator);
             } catch (NBTException e) {

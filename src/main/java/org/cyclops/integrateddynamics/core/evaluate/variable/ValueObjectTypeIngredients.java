@@ -62,6 +62,7 @@ public class ValueObjectTypeIngredients extends ValueObjectTypeBase<ValueObjectT
 
     @Override
     public ValueIngredients deserialize(String value) {
+    	value = ValueHelpers.uncompressSlashes(value);
         if(Strings.isNullOrEmpty(value)) return ValueIngredients.of(null);
         try {
             NBTTagCompound tag = JsonToNBT.getTagFromJson(value);

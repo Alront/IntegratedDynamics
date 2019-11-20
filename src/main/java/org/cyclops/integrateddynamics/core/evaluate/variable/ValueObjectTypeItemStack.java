@@ -73,6 +73,7 @@ public class ValueObjectTypeItemStack extends ValueObjectTypeBase<ValueObjectTyp
 
     @Override
     public ValueItemStack deserialize(String value) {
+    	value = ValueHelpers.uncompressSlashes(value);
         try {
             NBTTagCompound tag = JsonToNBT.getTagFromJson(value);
             // Forge returns air for tags with negative count,

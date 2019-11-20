@@ -2,6 +2,7 @@ package org.cyclops.integrateddynamics.core.evaluate.variable;
 
 import net.minecraft.nbt.NBTTagCompound;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cyclops.cyclopscore.helper.Helpers;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
@@ -16,6 +17,8 @@ import org.cyclops.integrateddynamics.api.item.IVariableFacade;
 import org.cyclops.integrateddynamics.core.evaluate.operator.CurriedOperator;
 import org.cyclops.integrateddynamics.core.helper.L10NValues;
 import org.cyclops.integrateddynamics.core.helper.NetworkHelpers;
+
+import com.google.common.annotations.VisibleForTesting;
 
 import javax.annotation.Nullable;
 
@@ -148,12 +151,86 @@ public class ValueHelpers {
      */
     public static String serializeRaw(IValue value) {
         String raw = value.getType().serialize(value);
+        raw = compressSlashes(raw); // TODO: remove this hack
         if (raw.length() >= GeneralConfig.maxValueByteSize) {
             return "TOO LONG";
         }
         return raw;
     }
-
+    
+    public static final String compressionMarker = "#H#A#C#K#";
+    // pockets of slashes up to this length are ignored
+    public static final int slashThreshold = 32;
+    
+    /**
+     * Serializing strings can involve serializing nbt data. The resulting string will add additional escape characters
+     * for occurrences of backslashes.
+     * If this resulting is serialized again, this will add exponentially more escape characters.
+     * Due to this, we need to compress the excessive amount of backslashes. (There is probably a prettier solution)
+     */
+    public static String compressSlashes(String str) {
+    	// only compress if the length is actually going to be a problem
+    	if(str == null || str.length() < GeneralConfig.maxValueByteSize / 4) return str;
+    	
+    	// uncompress so we don't add markers within markers
+    	str = uncompressSlashes(str);
+    	
+    	StringBuilder sb = new StringBuilder();
+        int i = 0;
+        int count =  0;
+        while(i < str.length()) {
+        	char c = str.charAt(i);
+        	while(c == '\\' && i < str.length() - 1) {
+        		count++;
+        		i++;
+        		c = str.charAt(i);
+        	}
+        	
+        	if(count > slashThreshold) {
+        		// leave one slash, so we can count how many times this one got further multiplied and take it into account when uncompressing
+        		sb.append(compressionMarker + (count - 1) + "#\\#");
+        		count = 0;
+        	} else if(count > 0) {
+        		sb.append(StringUtils.repeat('\\', count));
+        		count = 0;
+        	} 
+        	sb.append(c);
+        	i++;
+        }
+        return sb.toString();
+    }
+    
+    public static String uncompressSlashes(String str) {
+    	if(str == null) 
+    		return str;
+    	
+        String[] strs = str.split(compressionMarker);
+        
+        if(strs.length == 1) 
+        	return str;
+        
+        StringBuilder sb = new StringBuilder();
+        sb.append(strs[0]);
+        for(int i = 1; i < strs.length; i++) {
+        	// the fragment will look like this: [MARKER]1234#\\\#...
+        	// meaning that we have to insert 1234 + 1 slashes multiplied by the number of slashes following between the # (in this case 3)
+        	final String fragment = strs[i];
+        	final int index = fragment.indexOf("#");
+        	final int number = Integer.parseInt(fragment.substring(0, index));
+        	
+        	int index2 = index;
+        	while(fragment.charAt(++index2) != '#');
+        	
+        	// - 1 because we counted one too much
+        	// int followingSlashes = index2 - index - 1;
+        	
+        	// multiply by the following slashes, because that is how many times slashes got multiplied after the compression was applied
+        	sb.append(StringUtils.repeat(fragment.substring(index + 1, index2), number + 1));
+        	sb.append(fragment.substring(index2 + 1));
+        }
+        return sb.toString();
+    }
+    
     /**
      * Serialize the given value to NBT.
      * @param value The value.
@@ -190,6 +267,7 @@ public class ValueHelpers {
         if ("TOO LONG".equals(valueString)) {
             return valueType.getDefault();
         }
+        valueString = uncompressSlashes(valueString); // TODO: remove this hack
         return valueType.deserialize(valueString);
     }
 

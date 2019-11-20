@@ -79,6 +79,7 @@ public class PredicateOperator<T extends IValueType<V>, V extends IValue> extend
 
         @Override
         public PredicateOperator<IValueType<IValue>, IValue> deserialize(String value) throws EvaluationException {
+        	value = ValueHelpers.uncompressSlashes(value);
             try {
                 NBTTagCompound tag = JsonToNBT.getTagFromJson(value);
                 IValueType<IValue> valueType = ValueTypes.REGISTRY.getValueType(tag.getString("valueType"));

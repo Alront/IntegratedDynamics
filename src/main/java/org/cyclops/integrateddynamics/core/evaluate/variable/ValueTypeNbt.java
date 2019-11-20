@@ -44,6 +44,7 @@ public class ValueTypeNbt extends ValueTypeBase<ValueTypeNbt.ValueNbt>
 
     @Override
     public ValueNbt deserialize(String value) {
+    	value = ValueHelpers.uncompressSlashes(value);
         try {
             return ValueNbt.of(JsonToNBT.getTagFromJson(value));
         } catch (NBTException e) {

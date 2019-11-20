@@ -401,6 +401,7 @@ public class CombinedOperator extends OperatorBase {
         @Override
         public CombinedOperator deserialize(String valueOperator) throws EvaluationException {
             NBTTagList list;
+            valueOperator = ValueHelpers.uncompressSlashes(valueOperator);
             try {
                 NBTTagCompound tag = JsonToNBT.getTagFromJson(valueOperator);
                 list = tag.getTagList("operators", MinecraftHelpers.NBTTag_Types.NBTTagString.ordinal());

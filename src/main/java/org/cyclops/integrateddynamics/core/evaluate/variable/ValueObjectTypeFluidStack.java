@@ -50,6 +50,7 @@ public class ValueObjectTypeFluidStack extends ValueObjectTypeBase<ValueObjectTy
 
     @Override
     public ValueFluidStack deserialize(String value) {
+    	value = ValueHelpers.uncompressSlashes(value);
         try {
             NBTTagCompound tag = JsonToNBT.getTagFromJson(value);
             FluidStack fluidStack = FluidStack.loadFluidStackFromNBT(tag);

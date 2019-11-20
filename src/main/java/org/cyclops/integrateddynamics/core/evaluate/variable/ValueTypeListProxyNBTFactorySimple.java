@@ -24,6 +24,7 @@ public abstract class ValueTypeListProxyNBTFactorySimple<T extends IValueType<V>
 
     @Override
     public P deserialize(String value) throws IValueTypeListProxyFactoryTypeRegistry.SerializationException {
+    	value = ValueHelpers.uncompressSlashes(value);
         try {
             NBTTagCompound tag = JsonToNBT.getTagFromJson(value);
             return deserializeNbt(tag);

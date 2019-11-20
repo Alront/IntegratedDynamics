@@ -71,6 +71,7 @@ public class ValueObjectTypeRecipe extends ValueObjectTypeBase<ValueObjectTypeRe
 
     @Override
     public ValueRecipe deserialize(String value) {
+    	value = ValueHelpers.uncompressSlashes(value);
         if(Strings.isNullOrEmpty(value)) return ValueRecipe.of(null);
         try {
             NBTTagCompound tag = JsonToNBT.getTagFromJson(value);

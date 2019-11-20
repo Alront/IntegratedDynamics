@@ -53,6 +53,7 @@ public class ValueTypeListProxyNBTFactory<T extends IValueType<V>, V extends IVa
 
     @Override
     public P deserialize(String value) throws IValueTypeListProxyFactoryTypeRegistry.SerializationException {
+    	value = ValueHelpers.uncompressSlashes(value);
         try {
             P proxy = this.proxyClassConstructor.newInstance();
             NBTTagCompound tag = JsonToNBT.getTagFromJson(value);
